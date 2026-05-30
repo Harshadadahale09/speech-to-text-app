@@ -12,6 +12,8 @@ function App() {
   const [transcript, setTranscript] = useState("");
   const [recording, setRecording] = useState(false);
   const [search, setSearch] = useState("");
+  const [totalUploads, setTotalUploads] = useState(0);
+  const [totalRecordings, setTotalRecordings] = useState(0);
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -23,6 +25,24 @@ function App() {
       );
 
       setHistory(res.data);
+
+setTotalUploads(
+  res.data.filter(
+    (item) =>
+      !item.originalName.includes(
+        "recording.webm"
+      )
+  ).length
+);
+
+setTotalRecordings(
+  res.data.filter(
+    (item) =>
+      item.originalName.includes(
+        "recording.webm"
+      )
+  ).length
+);
     } catch (err) {
       console.log(err);
     }
@@ -177,6 +197,39 @@ function App() {
         <h1 className="mb-8 text-center text-5xl font-extrabold text-blue-600">
           🎤 Speech To Text Converter
         </h1>
+        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+
+  <div className="rounded-xl bg-blue-100 p-5 text-center shadow">
+    <h2 className="text-lg font-bold text-blue-700">
+      Total Transcripts
+    </h2>
+
+    <p className="text-3xl font-bold">
+      {history.length}
+    </p>
+  </div>
+
+  <div className="rounded-xl bg-green-100 p-5 text-center shadow">
+    <h2 className="text-lg font-bold text-green-700">
+      Total Uploads
+    </h2>
+
+    <p className="text-3xl font-bold">
+      {totalUploads}
+    </p>
+  </div>
+
+  <div className="rounded-xl bg-purple-100 p-5 text-center shadow">
+    <h2 className="text-lg font-bold text-purple-700">
+      Total Recordings
+    </h2>
+
+    <p className="text-3xl font-bold">
+      {totalRecordings}
+    </p>
+  </div>
+
+</div>
 
         <input
           type="file"
