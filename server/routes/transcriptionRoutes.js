@@ -30,6 +30,7 @@ router.post(
       }
 
       const audioBuffer = fs.readFileSync(req.file.path);
+
       console.log("File Type:", req.file.mimetype);
       console.log("File Name:", req.file.originalname);
 
@@ -65,6 +66,7 @@ router.post(
       });
 
       res.status(200).json(saved);
+
     } catch (error) {
       console.log("ERROR:");
       console.log(error.response?.data || error);
@@ -87,6 +89,22 @@ router.get("/history", async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Failed to fetch history",
+    });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    await Transcription.findByIdAndDelete(
+      req.params.id
+    );
+
+    res.json({
+      message: "Deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Delete failed",
     });
   }
 });

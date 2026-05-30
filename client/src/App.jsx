@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
+import { FaMicrophone } from "react-icons/fa";
+import { ClipLoader } from "react-spinners";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -9,6 +11,7 @@ function App() {
   const [history, setHistory] = useState([]);
   const [transcript, setTranscript] = useState("");
   const [recording, setRecording] = useState(false);
+  const [search, setSearch] = useState("");
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -76,7 +79,6 @@ function App() {
       };
 
       mediaRecorder.start();
-
       setRecording(true);
     } catch (error) {
       console.log(error);
@@ -115,7 +117,7 @@ function App() {
 
       setTranscript(res.data.text);
 
-      fetchHistory();
+      await fetchHistory();
 
       setFile(null);
     } catch (err) {
@@ -126,12 +128,24 @@ function App() {
     }
   };
 
+  const deleteTranscript = async (id) => {
+    try {
+      await axios.delete(
+        `${API_URL}/transcriptions/${id}`
+      );
+
+      fetchHistory();
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 p-8">
-      <div className="mx-auto max-w-4xl rounded-xl bg-white p-6 shadow">
+      <div className="mx-auto max-w-4xl rounded-2xl bg-white p-8 shadow-lg">
 
-        <h1 className="mb-6 text-center text-4xl font-bold">
-          Speech To Text Converter
+        <h1 className="mb-8 text-center text-5xl font-extrabold text-blue-600">
+          🎤 Speech To Text Converter
         </h1>
 
         <input
@@ -143,19 +157,26 @@ function App() {
           className="mb-4 w-full"
         />
 
+        {file && (
+          <div className="mb-4 rounded-lg bg-gray-100 p-2 text-sm text-gray-700">
+            📄 Selected File: {file.name}
+          </div>
+        )}
+
         <div className="mb-4 flex gap-3">
 
           {!recording ? (
             <button
               onClick={startRecording}
-              className="rounded bg-green-600 px-5 py-2 text-white"
+              className="rounded-lg bg-green-600 px-5 py-3 text-white hover:bg-green-700"
             >
-              🎤 Start Recording
+              <FaMicrophone className="mr-2 inline" />
+              Start Recording
             </button>
           ) : (
             <button
               onClick={stopRecording}
-              className="rounded bg-red-600 px-5 py-2 text-white"
+              className="rounded-lg bg-red-600 px-5 py-3 text-white hover:bg-red-700"
             >
               ⏹ Stop Recording
             </button>
@@ -163,45 +184,108 @@ function App() {
 
           <button
             onClick={uploadAudio}
-            className="rounded bg-blue-600 px-5 py-2 text-white"
+            className="rounded-lg bg-blue-600 px-5 py-3 text-white hover:bg-blue-700"
           >
-            {loading
-              ? "Converting..."
-              : "Upload Audio"}
+            {loading ? (
+              <ClipLoader
+                color="#ffffff"
+                size={20}
+              />
+            ) : (
+              "Upload Audio"
+            )}
           </button>
 
         </div>
 
         {transcript && (
-          <div className="mt-6 rounded bg-slate-100 p-4">
-            <h2 className="mb-2 text-xl font-bold">
+          <div className="mt-6 rounded-xl bg-blue-50 p-5 shadow">
+            <h2 className="mb-2 text-xl font-bold text-blue-700">
               Latest Transcript
             </h2>
 
-            <p>{transcript}</p>
+            <p className="text-gray-700">
+              {transcript}
+            </p>
           </div>
         )}
 
-        <h2 className="mt-8 mb-4 text-2xl font-bold">
+        <input
+          type="text"
+          placeholder="🔍 Search transcripts..."
+          value={search}
+          onChange={(e) =>
+            setSearch(e.target.value)
+          }
+          className="mt-8 mb-4 w-full rounded-lg border p-3"
+        />
+
+        <h2 className="mb-4 text-2xl font-bold">
           History
         </h2>
 
         {history.length === 0 ? (
           <p>No transcripts yet.</p>
         ) : (
-          history.map((item) => (
-            <div
-              key={item._id}
-              className="mb-4 rounded border p-4"
-            >
-              <h3 className="font-semibold">
-                {item.originalName}
-              </h3>
+          history
+            .filter((item) =>
+              item.text
+                ?.toLowerCase()
+                .includes(
+                  search.toLowerCase()
+                )
+            )
+            .map((item) => (
+              <div
+                key={item._id}
+                className="mb-4 rounded-xl border bg-white p-5 shadow"
+              >
+                <h3 className="font-bold text-blue-600">
+                  {item.originalName}
+                </h3>
 
-              <p>{item.text}</p>
-            </div>
-          ))
+                <p className="mt-2 text-gray-700">
+                  {item.text}
+                </p>
+
+                <small className="block text-gray-500">
+                  {new Date(
+                    item.createdAt
+                  ).toLocaleString()}
+                </small>
+
+                <div className="mt-3 flex gap-2">
+
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        item.text
+                      );
+
+                      alert("Copied!");
+                    }}
+                    className="rounded bg-green-600 px-3 py-1 text-white"
+                  >
+                    Copy
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      deleteTranscript(
+                        item._id
+                      )
+                    }
+                    className="rounded bg-red-600 px-3 py-1 text-white"
+                  >
+                    Delete
+                  </button>
+
+                </div>
+
+              </div>
+            ))
         )}
+
       </div>
     </div>
   );
