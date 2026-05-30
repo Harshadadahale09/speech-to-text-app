@@ -1,3 +1,12 @@
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer
+} from "recharts";
+
 import jsPDF from "jspdf";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
@@ -226,7 +235,20 @@ const downloadPDF = (
     `${fileName}.pdf`
   );
 };
-
+const chartData = [
+  {
+    name: "Uploads",
+    count: totalUploads,
+  },
+  {
+    name: "Recordings",
+    count: totalRecordings,
+  },
+  {
+    name: "Total",
+    count: history.length,
+  },
+];
   return (
     <div
       className={`min-h-screen p-8 ${
@@ -287,6 +309,26 @@ const downloadPDF = (
             </p>
           </div>
         </div>
+        <div className="mb-8 rounded-xl bg-white p-5 shadow">
+  <h2 className="mb-4 text-center text-2xl font-bold">
+    Analytics Dashboard
+  </h2>
+
+  <ResponsiveContainer
+    width="100%"
+    height={300}
+  >
+    <BarChart data={chartData}>
+      <XAxis dataKey="name" />
+      <YAxis />
+      <Tooltip />
+      <Bar
+        dataKey="count"
+        fill="#3b82f6"
+      />
+    </BarChart>
+  </ResponsiveContainer>
+</div>
 
         <input
           type="file"
