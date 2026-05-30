@@ -1,3 +1,4 @@
+import jsPDF from "jspdf";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { FaMicrophone } from "react-icons/fa";
@@ -161,36 +162,70 @@ function App() {
     }
   };
 
-  const downloadTranscript = (
-    text,
-    fileName
-  ) => {
-    const element =
-      document.createElement("a");
+  
+   const downloadTranscript = (
+  text,
+  fileName
+) => {
+  const element =
+    document.createElement("a");
 
-    const file = new Blob(
-      [text],
-      {
-        type: "text/plain",
-      }
+  const file = new Blob(
+    [text],
+    {
+      type: "text/plain",
+    }
+  );
+
+  element.href =
+    URL.createObjectURL(file);
+
+  element.download =
+    `${fileName}.txt`;
+
+  document.body.appendChild(
+    element
+  );
+
+  element.click();
+
+  document.body.removeChild(
+    element
+  );
+};
+
+const downloadPDF = (
+  text,
+  fileName
+) => {
+  const doc = new jsPDF();
+
+  doc.setFontSize(16);
+
+  doc.text(
+    "Speech To Text Transcript",
+    20,
+    20
+  );
+
+  doc.setFontSize(12);
+
+  const lines =
+    doc.splitTextToSize(
+      text || "No transcript",
+      170
     );
 
-    element.href =
-      URL.createObjectURL(file);
+  doc.text(
+    lines,
+    20,
+    40
+  );
 
-    element.download =
-      `${fileName}.txt`;
-
-    document.body.appendChild(
-      element
-    );
-
-    element.click();
-
-    document.body.removeChild(
-      element
-    );
-  };
+  doc.save(
+    `${fileName}.pdf`
+  );
+};
 
   return (
     <div
@@ -354,20 +389,18 @@ function App() {
                 ).toLocaleString()}
               </small>
 
-              <div className="mt-3 flex gap-2">
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(
-                      item.text
-                    );
-                    alert("Copied!");
-                  }}
-                  className="rounded bg-green-600 px-3 py-1 text-white"
-                >
-                  Copy
-                </button>
+              <div className="mt-3 flex flex-wrap gap-2">
+  <button
+    onClick={() => {
+      navigator.clipboard.writeText(item.text);
+      alert("Copied!");
+    }}
+    className="rounded bg-green-600 px-3 py-1 text-white"
+  >
+    Copy
+  </button>
 
-                <button
+                  <button
                   onClick={() =>
                     deleteTranscript(
                       item._id
@@ -387,7 +420,19 @@ function App() {
                   }
                   className="rounded bg-purple-600 px-3 py-1 text-white"
                 >
-                  Download
+                  Download TXT
+                </button>
+
+                <button
+                  onClick={() =>
+                    downloadPDF(
+                      item.text,
+                      item.originalName
+                    )
+                  }
+                  className="rounded bg-orange-600 px-3 py-1 text-white"
+                >
+                  PDF
                 </button>
               </div>
             </div>
