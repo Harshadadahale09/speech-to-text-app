@@ -14,6 +14,7 @@ function App() {
   const [search, setSearch] = useState("");
   const [totalUploads, setTotalUploads] = useState(0);
   const [totalRecordings, setTotalRecordings] = useState(0);
+  const [darkMode, setDarkMode] = useState(false);
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -26,23 +27,23 @@ function App() {
 
       setHistory(res.data);
 
-setTotalUploads(
-  res.data.filter(
-    (item) =>
-      !item.originalName.includes(
-        "recording.webm"
-      )
-  ).length
-);
+      setTotalUploads(
+        res.data.filter(
+          (item) =>
+            !item.originalName.includes(
+              "recording.webm"
+            )
+        ).length
+      );
 
-setTotalRecordings(
-  res.data.filter(
-    (item) =>
-      item.originalName.includes(
-        "recording.webm"
-      )
-  ).length
-);
+      setTotalRecordings(
+        res.data.filter(
+          (item) =>
+            item.originalName.includes(
+              "recording.webm"
+            )
+        ).length
+      );
     } catch (err) {
       console.log(err);
     }
@@ -159,77 +160,98 @@ setTotalRecordings(
       console.log(err);
     }
   };
+
   const downloadTranscript = (
-  text,
-  fileName
-) => {
-  const element =
-    document.createElement("a");
+    text,
+    fileName
+  ) => {
+    const element =
+      document.createElement("a");
 
-  const file = new Blob(
-    [text],
-    {
-      type: "text/plain",
-    }
-  );
+    const file = new Blob(
+      [text],
+      {
+        type: "text/plain",
+      }
+    );
 
-  element.href =
-    URL.createObjectURL(file);
+    element.href =
+      URL.createObjectURL(file);
 
-  element.download =
-    `${fileName}.txt`;
+    element.download =
+      `${fileName}.txt`;
 
-  document.body.appendChild(
-    element
-  );
+    document.body.appendChild(
+      element
+    );
 
-  element.click();
+    element.click();
 
-  document.body.removeChild(
-    element
-  );
-};
+    document.body.removeChild(
+      element
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-slate-100 p-8">
-      <div className="mx-auto max-w-4xl rounded-2xl bg-white p-8 shadow-lg">
-
+    <div
+      className={`min-h-screen p-8 ${
+        darkMode
+          ? "bg-slate-900"
+          : "bg-slate-100"
+      }`}
+    >
+      <div
+        className={`mx-auto max-w-4xl rounded-2xl p-8 shadow-lg ${
+          darkMode
+            ? "bg-slate-800 text-white"
+            : "bg-white text-black"
+        }`}
+      >
         <h1 className="mb-8 text-center text-5xl font-extrabold text-blue-600">
           🎤 Speech To Text Converter
         </h1>
+
+        <div className="mb-6 text-right">
+          <button
+            onClick={() =>
+              setDarkMode(!darkMode)
+            }
+            className="rounded-lg bg-black px-4 py-2 text-white"
+          >
+            {darkMode
+              ? "☀️ Light Mode"
+              : "🌙 Dark Mode"}
+          </button>
+        </div>
+
         <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="rounded-xl bg-blue-100 p-5 text-center shadow">
+            <h2 className="text-lg font-bold text-blue-700">
+              Total Transcripts
+            </h2>
+            <p className="text-3xl font-bold">
+              {history.length}
+            </p>
+          </div>
 
-  <div className="rounded-xl bg-blue-100 p-5 text-center shadow">
-    <h2 className="text-lg font-bold text-blue-700">
-      Total Transcripts
-    </h2>
+          <div className="rounded-xl bg-green-100 p-5 text-center shadow">
+            <h2 className="text-lg font-bold text-green-700">
+              Total Uploads
+            </h2>
+            <p className="text-3xl font-bold">
+              {totalUploads}
+            </p>
+          </div>
 
-    <p className="text-3xl font-bold">
-      {history.length}
-    </p>
-  </div>
-
-  <div className="rounded-xl bg-green-100 p-5 text-center shadow">
-    <h2 className="text-lg font-bold text-green-700">
-      Total Uploads
-    </h2>
-
-    <p className="text-3xl font-bold">
-      {totalUploads}
-    </p>
-  </div>
-
-  <div className="rounded-xl bg-purple-100 p-5 text-center shadow">
-    <h2 className="text-lg font-bold text-purple-700">
-      Total Recordings
-    </h2>
-
-    <p className="text-3xl font-bold">
-      {totalRecordings}
-    </p>
-  </div>
-
-</div>
+          <div className="rounded-xl bg-purple-100 p-5 text-center shadow">
+            <h2 className="text-lg font-bold text-purple-700">
+              Total Recordings
+            </h2>
+            <p className="text-3xl font-bold">
+              {totalRecordings}
+            </p>
+          </div>
+        </div>
 
         <input
           type="file"
@@ -247,7 +269,6 @@ setTotalRecordings(
         )}
 
         <div className="mb-4 flex gap-3">
-
           {!recording ? (
             <button
               onClick={startRecording}
@@ -278,7 +299,6 @@ setTotalRecordings(
               "Upload Audio"
             )}
           </button>
-
         </div>
 
         {transcript && (
@@ -307,79 +327,71 @@ setTotalRecordings(
           History
         </h2>
 
-        {history.length === 0 ? (
-          <p>No transcripts yet.</p>
-        ) : (
-          history
-            .filter((item) =>
-              item.text
-                ?.toLowerCase()
-                .includes(
-                  search.toLowerCase()
-                )
-            )
-            .map((item) => (
-              <div
-                key={item._id}
-                className="mb-4 rounded-xl border bg-white p-5 shadow"
-              >
-                <h3 className="font-bold text-blue-600">
-                  {item.originalName}
-                </h3>
+        {history
+          .filter((item) =>
+            item.text
+              ?.toLowerCase()
+              .includes(
+                search.toLowerCase()
+              )
+          )
+          .map((item) => (
+            <div
+              key={item._id}
+              className="mb-4 rounded-xl border bg-white p-5 shadow"
+            >
+              <h3 className="font-bold text-blue-600">
+                {item.originalName}
+              </h3>
 
-                <p className="mt-2 text-gray-700">
-                  {item.text}
-                </p>
+              <p className="mt-2 text-gray-700">
+                {item.text}
+              </p>
 
-                <small className="block text-gray-500">
-                  {new Date(
-                    item.createdAt
-                  ).toLocaleString()}
-                </small>
+              <small className="block text-gray-500">
+                {new Date(
+                  item.createdAt
+                ).toLocaleString()}
+              </small>
 
-                <div className="mt-3 flex gap-2">
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      item.text
+                    );
+                    alert("Copied!");
+                  }}
+                  className="rounded bg-green-600 px-3 py-1 text-white"
+                >
+                  Copy
+                </button>
 
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(
-                        item.text
-                      );
+                <button
+                  onClick={() =>
+                    deleteTranscript(
+                      item._id
+                    )
+                  }
+                  className="rounded bg-red-600 px-3 py-1 text-white"
+                >
+                  Delete
+                </button>
 
-                      alert("Copied!");
-                    }}
-                    className="rounded bg-green-600 px-3 py-1 text-white"
-                  >
-                    Copy
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      deleteTranscript(
-                        item._id
-                      )
-                    }
-                    className="rounded bg-red-600 px-3 py-1 text-white"
-                  >
-                    Delete
-                  </button>
-                  <button
-  onClick={() =>
-    downloadTranscript(
-      item.text,
-      item.originalName
-    )
-  }
-  className="rounded bg-purple-600 px-3 py-1 text-white"
->
-  Download
-</button>
-
-                </div>
-
+                <button
+                  onClick={() =>
+                    downloadTranscript(
+                      item.text,
+                      item.originalName
+                    )
+                  }
+                  className="rounded bg-purple-600 px-3 py-1 text-white"
+                >
+                  Download
+                </button>
               </div>
-            ))
-        )}
-
+            </div>
+          ))}
       </div>
     </div>
   );
