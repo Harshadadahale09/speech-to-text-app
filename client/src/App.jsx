@@ -25,6 +25,7 @@ function App() {
   const [totalUploads, setTotalUploads] = useState(0);
   const [totalRecordings, setTotalRecordings] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
+  const [audioURL, setAudioURL] = useState("");
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -103,6 +104,11 @@ function App() {
         );
 
         setFile(recordedFile);
+        setAudioURL(
+  URL.createObjectURL(
+    recordedFile
+  )
+);
 
         alert(
           "Recording completed. Click Upload Audio."
@@ -333,9 +339,20 @@ const chartData = [
         <input
           type="file"
           accept="audio/*"
-          onChange={(e) =>
-            setFile(e.target.files[0])
-          }
+          onChange={(e) => {
+  const selectedFile =
+    e.target.files[0];
+
+  setFile(selectedFile);
+
+  if (selectedFile) {
+    setAudioURL(
+      URL.createObjectURL(
+        selectedFile
+      )
+    );
+  }
+}}
           className="mb-4 w-full"
         />
 
@@ -344,7 +361,15 @@ const chartData = [
             📄 Selected File: {file.name}
           </div>
         )}
-
+{audioURL && (
+  <div className="mb-4">
+    <audio
+      controls
+      className="w-full"
+      src={audioURL}
+    />
+  </div>
+)}
         <div className="mb-4 flex gap-3">
           {!recording ? (
             <button
@@ -432,8 +457,8 @@ const chartData = [
               </small>
 
               <div className="mt-3 flex flex-wrap gap-2">
-  <button
-    onClick={() => {
+           <button
+           onClick={() => {
       navigator.clipboard.writeText(item.text);
       alert("Copied!");
     }}
