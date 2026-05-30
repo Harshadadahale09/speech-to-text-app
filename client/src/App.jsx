@@ -139,6 +139,36 @@ function App() {
       console.log(err);
     }
   };
+  const downloadTranscript = (
+  text,
+  fileName
+) => {
+  const element =
+    document.createElement("a");
+
+  const file = new Blob(
+    [text],
+    {
+      type: "text/plain",
+    }
+  );
+
+  element.href =
+    URL.createObjectURL(file);
+
+  element.download =
+    `${fileName}.txt`;
+
+  document.body.appendChild(
+    element
+  );
+
+  element.click();
+
+  document.body.removeChild(
+    element
+  );
+};
 
   return (
     <div className="min-h-screen bg-slate-100 p-8">
@@ -279,6 +309,17 @@ function App() {
                   >
                     Delete
                   </button>
+                  <button
+  onClick={() =>
+    downloadTranscript(
+      item.text,
+      item.originalName
+    )
+  }
+  className="rounded bg-purple-600 px-3 py-1 text-white"
+>
+  Download
+</button>
 
                 </div>
 
