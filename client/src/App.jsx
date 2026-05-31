@@ -1,3 +1,12 @@
+
+import {
+  Routes,
+  Route,
+  Navigate
+} from "react-router-dom";
+
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import {
   BarChart,
   Bar,
@@ -16,8 +25,14 @@ import { ClipLoader } from "react-spinners";
 const API_URL = import.meta.env.VITE_API_URL;
 
 function App() {
+  const token =
+    localStorage.getItem("token");
+
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const user = JSON.parse(
+    localStorage.getItem("user")
+  );
   const [history, setHistory] = useState([]);
   const [transcript, setTranscript] = useState("");
   const [recording, setRecording] = useState(false);
@@ -32,10 +47,19 @@ function App() {
 
   const fetchHistory = async () => {
     try {
-      const res = await axios.get(
-        `${API_URL}/transcriptions/history`
-      );
+      const token =
+  localStorage.getItem(
+    "token"
+  );
 
+const res = await axios.get(
+  `${API_URL}/transcriptions/history`,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
       setHistory(res.data);
 
       setTotalUploads(
@@ -139,6 +163,19 @@ function App() {
       );
       return;
     }
+    const allowedTypes = [
+  "audio/mpeg",
+  "audio/wav",
+  "audio/webm",
+  "audio/mp3"
+];
+
+if (!allowedTypes.includes(file.type)) {
+  alert(
+    "Only MP3, WAV and WEBM files are allowed"
+  );
+  return;
+}
 
     try {
       setLoading(true);
@@ -147,11 +184,20 @@ function App() {
 
       formData.append("audio", file);
 
-      const res = await axios.post(
-        `${API_URL}/transcriptions/upload`,
-        formData
-      );
+      const token =
+  localStorage.getItem(
+    "token"
+  );
 
+const res = await axios.post(
+  `${API_URL}/transcriptions/upload`,
+  formData,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
       setTranscript(res.data.text);
 
       await fetchHistory();
@@ -159,7 +205,10 @@ function App() {
       setFile(null);
     } catch (err) {
       console.log(err);
-      alert("Upload failed");
+      alert(
+  err.response?.data?.message ||
+  "Upload failed"
+);
     } finally {
       setLoading(false);
     }
@@ -167,9 +216,19 @@ function App() {
 
   const deleteTranscript = async (id) => {
     try {
-      await axios.delete(
-        `${API_URL}/transcriptions/${id}`
-      );
+           const token =
+  localStorage.getItem(
+    "token"
+  );
+
+await axios.delete(
+  `${API_URL}/transcriptions/${id}`,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
 
       fetchHistory();
     } catch (err) {
@@ -255,7 +314,34 @@ const chartData = [
     count: history.length,
   },
 ];
+if (!localStorage.getItem("token")) {
   return (
+    <Routes>
+      <Route
+        path="/login"
+        element={<Login />}
+      />
+
+      <Route
+        path="/signup"
+        element={<Signup />}
+      />
+
+      <Route
+        path="*"
+        element={
+          <Navigate
+            to="/login"
+          />
+        }
+      />
+    </Routes>
+  );
+}
+
+
+  return (
+    
     <div
       className={`min-h-screen p-8 ${
         darkMode
@@ -273,7 +359,30 @@ const chartData = [
         <h1 className="mb-8 text-center text-5xl font-extrabold text-blue-600">
           🎤 Speech To Text Converter
         </h1>
+        {user && (
+  <div className="mb-6 flex items-center justify-between rounded-xl bg-blue-50 p-4 shadow">
+    <div>
+      <h2 className="text-xl font-bold">
+        Welcome, {user.name}
+      </h2>
 
+      <p className="text-gray-500">
+        {user.email}
+      </p>
+    </div>
+
+    <button
+      onClick={() => {
+        localStorage.clear();
+        window.location.href = "/login";
+      }}
+      className="rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+    >
+      Logout
+    </button>
+  </div>
+)}
+        
         <div className="mb-6 text-right">
           <button
             onClick={() =>
@@ -286,6 +395,7 @@ const chartData = [
               : "🌙 Dark Mode"}
           </button>
         </div>
+        
 
         <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="rounded-xl bg-blue-100 p-5 text-center shadow">

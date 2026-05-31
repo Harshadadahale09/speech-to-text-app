@@ -1,3 +1,4 @@
+import authRoutes from "./routes/authRoutes.js";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -16,7 +17,10 @@ app.use("/uploads", express.static("uploads"));
 app.get("/", (req, res) => {
   res.send("Speech-to-Text API is running");
 });
-
+app.use(
+  "/api/auth",
+  authRoutes
+);
 app.use("/api/transcriptions", transcriptionRoutes);
 
 mongoose
